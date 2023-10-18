@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
+import { SizeSelect } from "~/components/SizeSelect";
 import { getProductById } from "~/models/product.server";
 import productStylesUrls from "~/styles/product.css";
 import { slugUrlMap } from "~/utils/imageUtils";
@@ -32,7 +33,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 };
 
 export default function ProductPage() {
-  const { product } = useLoaderData<typeof loader>();
+  const { product, size } = useLoaderData<typeof loader>();
   const { imageSlug, name, description, id } = product || {};
   const imageUrl = imageSlug ? slugUrlMap[imageSlug] : slugUrlMap.hat_1;
   return (
@@ -57,12 +58,7 @@ export default function ProductPage() {
             className="mx-2 flex gap-3 items-center"
           >
             <label htmlFor="size">Size:</label>
-            <button className="size-button" name="size" value="sm">
-              Small
-            </button>
-            <button className="size-button" name="size" value="md">
-              Medium
-            </button>
+            <SizeSelect selectedSize={size as any} />
           </Form>
           <Link to="/" className="text-sky-700 underline">
             {"<"} Catalog
