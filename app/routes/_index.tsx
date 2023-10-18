@@ -1,7 +1,4 @@
-import { PrismaClient } from "@prisma/client";
 import type { MetaFunction } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { Card } from "~/components/Card";
 import landingStylesUrls from "~/styles/landing.css";
 
 export const meta: MetaFunction = () => {
