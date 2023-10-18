@@ -1,6 +1,26 @@
-# Welcome to Remix!
+# Remix V2 Intro
 
 - [Remix Docs](https://remix.run/docs)
+
+## Steps
+
+This intro takes you from "Hello world" to data mutation. There are branches for each step along the way to help you jump to specific points, or reset a step if you make a mistake.
+
+step_0: Hello World (very basic index.tsx)
+step_1: Styling (how to add css, tailwind)
+step_2: Adding images (importing static assets)
+step_3: Loading Data (fetching data, loaders)
+step_4: Routes (how to make new routes)
+step_5: Search Params (form gets)
+step_6: Slow loaders (defer)
+step_7: Data saving (actions, redirects)
+step_8: 404 Pages (splat routes)
+
+## Setup
+
+```sh
+npx prisma migrate dev init
+```
 
 ## Development
 
