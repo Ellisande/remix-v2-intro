@@ -1,6 +1,8 @@
-import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { LoaderFunctionArgs, MetaFunction, defer, json } from "@remix-run/node";
+import { Await, Form, Link, useLoaderData } from "@remix-run/react";
+import { Suspense } from "react";
 import { getPrice } from "~/apiClients/pricing.server";
+import { BeefLoader } from "~/components/BeefLoader";
 import { SizeSelect } from "~/components/SizeSelect";
 import { getProductById } from "~/models/product.server";
 import productStylesUrls from "~/styles/product.css";
@@ -30,12 +32,12 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   }
   const url = new URL(request.url);
   const size = url.searchParams.get("size") || "md";
-  const priceInfo = await getPrice(product.id, size);
-  return json({ product, size, priceInfo });
+  const priceInfoPromise = getPrice(product.id, size);
+  return defer({ product, priceInfoPromise, size });
 };
 
 export default function ProductPage() {
-  const { product, size, priceInfo } = useLoaderData<typeof loader>();
+  const { product, size, priceInfoPromise } = useLoaderData<typeof loader>();
   const { imageSlug, name, description, id } = product || {};
   const imageUrl = imageSlug ? slugUrlMap[imageSlug] : slugUrlMap.hat_1;
   return (
@@ -66,8 +68,61 @@ export default function ProductPage() {
             {"<"} Catalog
           </Link>
         </div>
-        <div>{JSON.stringify(priceInfo, null, 2)}</div>
+        <div>
+          <div className="border-slate-300 rounded-lg p-4 flex flex-col border-4 lg:w-1/2 w-96 ml-2 mt-3 py-20 h-[758px]">
+            <Suspense fallback={<BeefLoader>Calculating price...</BeefLoader>}>
+              <Await resolve={priceInfoPromise}>
+                {(priceInfo) => (
+                  <Pricing priceInfo={priceInfo} productId={id} />
+                )}
+              </Await>
+            </Suspense>
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+export type PurchaseFormData = {
+  productId: number;
+  price: number;
+};
+
+function Pricing({
+  priceInfo,
+  productId,
+}: {
+  priceInfo: any;
+  productId: number;
+}) {
+  return (
+    <Form method="post" className="text-slate-900 text-6xl flex flex-col gap-3">
+      <input type="hidden" name="productId" value={productId} />
+      <div>Base price: ${priceInfo.basePrice.toFixed(2)}</div>
+      <div>Services</div>
+      <div className="flex flex-col ml-2 text-3xl text-slate-600">
+        {priceInfo.lineItems.map((lineItem: any) => (
+          <div>
+            {lineItem.description}: ${lineItem.price.toFixed(2)}
+          </div>
+        ))}
+      </div>
+      <div>Fees</div>
+      <div className="flex flex-col ml-2 text-3xl text-slate-600">
+        {priceInfo.fees.map((lineItem: any) => (
+          <div>
+            {lineItem.description}: ${lineItem.price.toFixed(2)}
+          </div>
+        ))}
+      </div>
+      <button
+        className="rounded-md border border-emerald-400 bg-emerald-400 my-3 py-2 px-3 mt-20"
+        name="price"
+        value={priceInfo.totalPrice}
+      >
+        Buy now for ${priceInfo.totalPrice.toFixed(2)}
+      </button>
+    </Form>
   );
 }
