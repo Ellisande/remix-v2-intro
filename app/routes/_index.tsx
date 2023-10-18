@@ -8,5 +8,5 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
-  return <div>Hello world</div>;
+  return <div style={{ fontSize: "100px", color: "red" }}>Hello world</div>;
 }
