@@ -1,10 +1,18 @@
-import { LoaderFunctionArgs, MetaFunction, defer, json } from "@remix-run/node";
+import {
+  ActionFunction,
+  LoaderFunctionArgs,
+  MetaFunction,
+  defer,
+  json,
+  redirect,
+} from "@remix-run/node";
 import { Await, Form, Link, useLoaderData } from "@remix-run/react";
 import { Suspense } from "react";
 import { getPrice } from "~/apiClients/pricing.server";
 import { BeefLoader } from "~/components/BeefLoader";
 import { SizeSelect } from "~/components/SizeSelect";
 import { getProductById } from "~/models/product.server";
+import { createPurchase } from "~/models/purchase.server";
 import productStylesUrls from "~/styles/product.css";
 import { slugUrlMap } from "~/utils/imageUtils";
 
@@ -20,6 +28,16 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export const links = () => [{ rel: "stylesheet", href: productStylesUrls }];
+
+export const action: ActionFunction = async ({ request }) => {
+  const body = new URLSearchParams(await request.text());
+  const formData = Object.fromEntries(body.entries());
+  await createPurchase({
+    price: Number(formData.price),
+    productId: Number(formData.productId),
+  });
+  return redirect("/success");
+};
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { id } = params;
