@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
 import { Form, Link, useLoaderData } from "@remix-run/react";
+import { getPrice } from "~/apiClients/pricing.server";
 import { SizeSelect } from "~/components/SizeSelect";
 import { getProductById } from "~/models/product.server";
 import productStylesUrls from "~/styles/product.css";
@@ -29,11 +30,12 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   }
   const url = new URL(request.url);
   const size = url.searchParams.get("size") || "md";
-  return json({ product, size });
+  const priceInfo = await getPrice(product.id, size);
+  return json({ product, size, priceInfo });
 };
 
 export default function ProductPage() {
-  const { product, size } = useLoaderData<typeof loader>();
+  const { product, size, priceInfo } = useLoaderData<typeof loader>();
   const { imageSlug, name, description, id } = product || {};
   const imageUrl = imageSlug ? slugUrlMap[imageSlug] : slugUrlMap.hat_1;
   return (
@@ -64,6 +66,7 @@ export default function ProductPage() {
             {"<"} Catalog
           </Link>
         </div>
+        <div>{JSON.stringify(priceInfo, null, 2)}</div>
       </div>
     </div>
   );
