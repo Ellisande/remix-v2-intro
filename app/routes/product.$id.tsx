@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData } from "@remix-run/react";
 import { getProductById } from "~/models/product.server";
 import productStylesUrls from "~/styles/product.css";
 import { slugUrlMap } from "~/utils/imageUtils";
@@ -17,7 +17,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export const links = () => [{ rel: "stylesheet", href: productStylesUrls }];
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { id } = params;
   if (!id || isNaN(Number(id))) {
     throw new Error("No id provided");
@@ -26,7 +26,9 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   if (!product) {
     throw { message: "No product found", status: 404 };
   }
-  return json({ product });
+  const url = new URL(request.url);
+  const size = url.searchParams.get("size") || "md";
+  return json({ product, size });
 };
 
 export default function ProductPage() {
@@ -47,6 +49,21 @@ export default function ProductPage() {
           </h1>
           <h2 className="text-lg text-slate-900">Product description:</h2>
           <div className="text-slate-600 mx-2">{description}</div>
+          <h2>Options:</h2>
+          <Form
+            method="get"
+            preventScrollReset
+            reloadDocument
+            className="mx-2 flex gap-3 items-center"
+          >
+            <label htmlFor="size">Size:</label>
+            <button className="size-button" name="size" value="sm">
+              Small
+            </button>
+            <button className="size-button" name="size" value="md">
+              Medium
+            </button>
+          </Form>
           <Link to="/" className="text-sky-700 underline">
             {"<"} Catalog
           </Link>
